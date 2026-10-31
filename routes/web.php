@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\StockTransferController;
@@ -42,4 +43,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
     Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
     Route::post('/purchase-orders/{po}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+
+    // Phase 4: Core POS Engine
+    Route::get('/pos', [PosController::class, 'terminal'])->name('pos.terminal');
+    Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+    Route::post('/pos/hold', [PosController::class, 'hold'])->name('pos.hold');
+    Route::post('/pos/resume/{id}', [PosController::class, 'resume'])->name('pos.resume');
+    Route::delete('/pos/held/{id}', [PosController::class, 'destroyHeld'])->name('pos.held.destroy');
+    Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
 });

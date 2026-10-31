@@ -9,7 +9,7 @@
 | **Frontend** | React 19 / Inertia.js / TypeScript / Tailwind CSS / Lucide |
 | **Database** | PostgreSQL 16 (Shared Database with `tenant_id`) |
 | **Cache & Queue**| Redis 7 |
-| **Current Phase**| **Phase 3: Inventory & Purchasing (COMPLETED ✅) → Moving to Phase 4 (Core POS Engine)** |
+| **Current Phase**| **Phase 4: Core POS Engine (COMPLETED ✅) → Moving to Phase 5 (Payments & Shifts)** |
 | **Last Updated** | 2026-10-31 |
 
 ---
@@ -116,12 +116,29 @@ flowchart LR
   - `GET /api/v1/inventory/purchase-orders`
 - [x] 100% Automated Tests passing (26 tests, 92 assertions in `tests/Feature/InventoryTest.php`).
 
-### Phase 4: Core POS Engine (PENDING 📋)
-- [ ] Fixed viewport desktop POS layout (left product grid, right sticky cart).
-- [ ] Barcode scanning support (keyboard wedge) & quick SKU search.
-- [ ] Cart management (quantities, item discounts, notes, hold/resume).
-- [ ] Checkout transaction engine with pessimistic locking (`SELECT FOR UPDATE`).
-- [ ] Idempotent checkout handling.
+### Phase 4: Core POS Engine (COMPLETED ✅)
+- [x] Fixed viewport desktop POS layout (`100vh`, zero page scrolling, split 62% catalog / 38% cart).
+- [x] Barcode scanning support (keyboard wedge mode with instant Enter key auto-add) & debounced SKU search.
+- [x] Cart management:
+  - Increment/decrement quantity steppers with direct numeric input.
+  - Item discount and transaction discount adjustments.
+  - Customer selection with real-time loyalty point preview.
+  - Hold and Resume cart workflow (`held_orders` table with reference notes and expiration).
+- [x] Checkout transaction engine (`PosCheckoutService`):
+  - Strict server-side recalculation of prices, discounts, 11% PPN tax, and totals (never trust client figures).
+  - Pessimistic row-level locking (`StockBalance::where(...)->lockForUpdate()`) to prevent race conditions during checkout.
+  - Negative stock restriction (`allow_negative_stock = false`) with clear visual feedback.
+  - Sequential invoice number generation: `INV/{STORE_CODE}/{YYYYMMDD}/{SEQUENCE}`.
+  - Idempotency key protection preventing duplicate payments and double stock deductions.
+  - Automatic inventory deduction with immutable `SALE` movement ledger entry.
+  - Loyalty point accumulation (1 point per 10,000 IDR spent).
+- [x] Multi-Payment modal:
+  - Cash (Tunai) with quick suggestion buttons (Uang Pas, 10k, 20k, 50k, 100k, 200k, 500k) and live Kembalian computation.
+  - QRIS, Kartu Debit, and Kartu Kredit with EDC approval code recording.
+- [x] Printable 80mm thermal receipt preview modal with `window.print()` trigger and "Transaksi Baru" workflow.
+- [x] Keyboard shortcuts: `F2` (Focus Search Bar), `F4` (Trigger Payment Modal), `Escape` (Close Modals).
+- [x] RESTful API endpoint: `POST /api/v1/pos/checkout`.
+- [x] 100% Automated Tests passing (33 tests, 134 assertions in `tests/Feature/PosEngineTest.php`).
 
 ### Phase 5: Payment & Shift Management (PENDING 📋)
 - [ ] Multiple payment types (Cash, QRIS, Transfer, Debit/Credit, Split payment).

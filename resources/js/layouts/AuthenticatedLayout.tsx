@@ -111,15 +111,18 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                         Operasional Kasir
                     </div>
 
-                    <div className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-600/10 text-blue-300 border border-blue-500/20 cursor-not-allowed">
+                    <Link
+                        href="/pos"
+                        className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 text-white shadow-md shadow-blue-500/20 hover:bg-blue-500 transition-colors"
+                    >
                         <div className="flex items-center gap-3">
-                            <ShoppingBag className="w-4 h-4 text-blue-400" />
+                            <ShoppingBag className="w-4 h-4 text-white" />
                             <span>POS Terminal</span>
                         </div>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-700/60 text-blue-100 font-mono">
                             F4
                         </span>
-                    </div>
+                    </Link>
 
                     <div className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                         Master Data & CRM
