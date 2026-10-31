@@ -14,7 +14,9 @@ import {
     X,
     Building2,
     ShieldCheck,
-    Truck
+    Truck,
+    ArrowLeftRight,
+    ClipboardList
 } from 'lucide-react';
 import { PageProps } from '@/types';
 
@@ -148,12 +150,35 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                     </Link>
 
                     <div className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                        Operasional Lanjutan
+                        Inventaris & Pengadaan
                     </div>
 
-                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">
-                        <Warehouse className="w-4 h-4 text-slate-500" />
-                        <span>Inventaris & Gudang (Phase 3)</span>
+                    <Link
+                        href="/inventory"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <Warehouse className="w-4 h-4 text-amber-400" />
+                        <span>Stok & Mutasi Gudang</span>
+                    </Link>
+
+                    <Link
+                        href="/stock-transfers"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <ArrowLeftRight className="w-4 h-4 text-cyan-400" />
+                        <span>Transfer Antar Cabang</span>
+                    </Link>
+
+                    <Link
+                        href="/purchase-orders"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <ClipboardList className="w-4 h-4 text-emerald-400" />
+                        <span>Purchase Order & Masuk</span>
+                    </Link>
+
+                    <div className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Laporan & Analitik
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">

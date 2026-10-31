@@ -473,3 +473,4 @@ export default function ProductsIndex({ products, categories, brands, units, fil
         </AuthenticatedLayout>
     );
 }
+

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\InventoryApiController;
 use App\Models\Brand;
 use App\Models\Customer;
 use App\Models\Product;
@@ -122,5 +123,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/units', function () {
             return response()->json(['units' => Unit::where('is_active', true)->get()]);
         });
+
+        // Phase 3: Inventory APIs
+        Route::get('/inventory/balances', [InventoryApiController::class, 'balances']);
+        Route::get('/inventory/movements', [InventoryApiController::class, 'movements']);
+        Route::post('/inventory/adjust', [InventoryApiController::class, 'adjust']);
+        Route::get('/inventory/transfers', [InventoryApiController::class, 'transfers']);
+        Route::get('/inventory/purchase-orders', [InventoryApiController::class, 'purchaseOrders']);
     });
 });

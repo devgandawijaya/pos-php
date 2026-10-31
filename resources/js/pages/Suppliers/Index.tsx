@@ -368,3 +368,4 @@ export default function SuppliersIndex({ suppliers, filters }: Props) {
         </AuthenticatedLayout>
     );
 }
+

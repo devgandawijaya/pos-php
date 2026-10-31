@@ -90,3 +90,4 @@ class SupplierController extends Controller
         return back()->with('success', 'Supplier berhasil dihapus.');
     }
 }
+

@@ -398,3 +398,4 @@ export default function CustomersIndex({ customers, groups, filters }: Props) {
         </AuthenticatedLayout>
     );
 }
+

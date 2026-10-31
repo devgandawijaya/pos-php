@@ -3,7 +3,10 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +29,17 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
     Route::resource('customers', CustomerController::class)->except(['create', 'show', 'edit']);
     Route::resource('suppliers', SupplierController::class)->except(['create', 'show', 'edit']);
+
+    // Phase 3: Inventory & Purchasing
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+
+    Route::get('/stock-transfers', [StockTransferController::class, 'index'])->name('stock-transfers.index');
+    Route::post('/stock-transfers', [StockTransferController::class, 'store'])->name('stock-transfers.store');
+    Route::post('/stock-transfers/{transfer}/dispatch', [StockTransferController::class, 'dispatchTransfer'])->name('stock-transfers.dispatch');
+    Route::post('/stock-transfers/{transfer}/receive', [StockTransferController::class, 'receiveTransfer'])->name('stock-transfers.receive');
+
+    Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+    Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+    Route::post('/purchase-orders/{po}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
 });

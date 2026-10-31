@@ -10,6 +10,11 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Register;
 use App\Models\Role;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
+use App\Models\StockBalance;
+use App\Models\StockTransfer;
+use App\Models\StockTransferItem;
 use App\Models\Store;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -19,6 +24,8 @@ use App\Models\Unit;
 use App\Models\UnitConversion;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Services\InventoryService;
+use App\Services\TenantManager;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -261,6 +268,16 @@ class DatabaseSeeder extends Seeder
                 'store_id' => $storeA1->id,
                 'name' => 'Gudang Distribusi Cakung',
                 'address' => 'Kawasan Industri Cakung Blok B No. 4',
+                'is_active' => true,
+            ]
+        );
+
+        $whA2 = Warehouse::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'code' => 'WH-EAST'],
+            [
+                'store_id' => $storeA2->id,
+                'name' => 'Gudang Toko Cabang Timur',
+                'address' => 'Jl. Pemuda No. 88, Rawamangun, Jakarta Timur',
                 'is_active' => true,
             ]
         );
@@ -534,6 +551,119 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        // Phase 3: Initial Inventory Balances & Purchasing for Tenant A
+        app(TenantManager::class)->setTenant($tenantA);
+        $inventoryService = app(InventoryService::class);
+
+        $initialStocks = [
+            'KOPI-GAYO-250' => ['wh1' => 100, 'wh2' => 25],
+            'TEH-MELATI-25' => ['wh1' => 80, 'wh2' => 15],
+            'MIE-GORENG-SP' => ['wh1' => 300, 'wh2' => 80],
+            'AIR-MINERAL-600' => ['wh1' => 200, 'wh2' => 60],
+            'SUSU-UHT-1L' => ['wh1' => 50, 'wh2' => 10],
+            'KERIPIK-BALADO' => ['wh1' => 60, 'wh2' => 20],
+        ];
+
+        foreach ($initialStocks as $sku => $qtyMap) {
+            $prod = Product::where('tenant_id', $tenantA->id)->where('sku', $sku)->first();
+            if ($prod) {
+                // Check if balance exists in WH-CAKUNG
+                $exists1 = StockBalance::where('warehouse_id', $whA1->id)->where('product_id', $prod->id)->exists();
+                if (! $exists1 && $qtyMap['wh1'] > 0) {
+                    $inventoryService->recordMovement(
+                        warehouseId: $whA1->id,
+                        productId: $prod->id,
+                        movementType: 'INITIAL_BALANCE',
+                        quantityChange: (float) $qtyMap['wh1'],
+                        unitCost: (float) $prod->purchase_cost,
+                        notes: 'Saldo Awal Sistem - Gudang Cakung',
+                        userId: $ownerA->id
+                    );
+                }
+
+                // WH-EAST
+                $exists2 = StockBalance::where('warehouse_id', $whA2->id)->where('product_id', $prod->id)->exists();
+                if (! $exists2 && $qtyMap['wh2'] > 0) {
+                    $inventoryService->recordMovement(
+                        warehouseId: $whA2->id,
+                        productId: $prod->id,
+                        movementType: 'INITIAL_BALANCE',
+                        quantityChange: (float) $qtyMap['wh2'],
+                        unitCost: (float) $prod->purchase_cost,
+                        notes: 'Saldo Awal Sistem - Cabang Timur',
+                        userId: $ownerA->id
+                    );
+                }
+            }
+        }
+
+        // Seed Sample Purchase Order to Indofood
+        $supIndofood = Supplier::where('tenant_id', $tenantA->id)->where('code', 'SUP-INDOFOOD')->first();
+        $prodIndomie = Product::where('tenant_id', $tenantA->id)->where('sku', 'MIE-GORENG-SP')->first();
+        $prodKeripik = Product::where('tenant_id', $tenantA->id)->where('sku', 'KERIPIK-BALADO')->first();
+
+        $po = PurchaseOrder::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'po_number' => 'PO-2026-0001'],
+            [
+                'supplier_id' => $supIndofood->id,
+                'warehouse_id' => $whA1->id,
+                'status' => 'approved',
+                'order_date' => now()->subDays(3)->toDateString(),
+                'expected_date' => now()->addDays(2)->toDateString(),
+                'subtotal' => 1410000,
+                'tax_amount' => 155100,
+                'total_amount' => 1565100,
+                'notes' => 'Restock mingguan mie instan dan snack',
+                'user_id' => $ownerA->id,
+                'approved_by' => $ownerA->id,
+            ]
+        );
+
+        if ($po->items()->count() === 0) {
+            PurchaseOrderItem::create([
+                'tenant_id' => $tenantA->id,
+                'purchase_order_id' => $po->id,
+                'product_id' => $prodIndomie->id,
+                'quantity_ordered' => 200,
+                'quantity_received' => 0,
+                'unit_cost' => 2800,
+                'subtotal' => 560000,
+            ]);
+
+            PurchaseOrderItem::create([
+                'tenant_id' => $tenantA->id,
+                'purchase_order_id' => $po->id,
+                'product_id' => $prodKeripik->id,
+                'quantity_ordered' => 100,
+                'quantity_received' => 0,
+                'unit_cost' => 8500,
+                'subtotal' => 850000,
+            ]);
+        }
+
+        // Seed Sample Stock Transfer from WH-CAKUNG to WH-EAST
+        $transfer = StockTransfer::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'transfer_number' => 'TRF-2026-0001'],
+            [
+                'source_warehouse_id' => $whA1->id,
+                'destination_warehouse_id' => $whA2->id,
+                'status' => 'draft',
+                'notes' => 'Permintaan pasokan tambahan Cabang Timur',
+                'user_id' => $managerA->id,
+            ]
+        );
+
+        if ($transfer->items()->count() === 0) {
+            StockTransferItem::create([
+                'tenant_id' => $tenantA->id,
+                'stock_transfer_id' => $transfer->id,
+                'product_id' => $prodIndomie->id,
+                'quantity_requested' => 50,
+                'quantity_dispatched' => 0,
+                'quantity_received' => 0,
+            ]);
+        }
 
         // 6. Seed Tenant B ("CV Maju Bersama") for Tenant Isolation Proof
         $tenantB = Tenant::firstOrCreate(

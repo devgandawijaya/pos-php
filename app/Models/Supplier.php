@@ -32,3 +32,4 @@ class Supplier extends Model
         'is_active' => 'boolean',
     ];
 }
+

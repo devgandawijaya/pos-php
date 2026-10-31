@@ -92,3 +92,4 @@ class CustomerController extends Controller
         return back()->with('success', 'Pelanggan berhasil dihapus.');
     }
 }
+

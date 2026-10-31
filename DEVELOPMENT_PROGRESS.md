@@ -9,7 +9,7 @@
 | **Frontend** | React 19 / Inertia.js / TypeScript / Tailwind CSS / Lucide |
 | **Database** | PostgreSQL 16 (Shared Database with `tenant_id`) |
 | **Cache & Queue**| Redis 7 |
-| **Current Phase**| **Phase 2: SaaS & Master Data (COMPLETED ✅) → Moving to Phase 3 (Inventory & Purchasing)** |
+| **Current Phase**| **Phase 3: Inventory & Purchasing (COMPLETED ✅) → Moving to Phase 4 (Core POS Engine)** |
 | **Last Updated** | 2026-10-31 |
 
 ---
@@ -88,13 +88,33 @@ flowchart LR
   - Subscription quota & active status test
   - REST API Bearer token product query test
 
-### Phase 3: Inventory & Purchasing (UPCOMING 📋)
-- [ ] Immutable double-entry inventory ledger (`inventory_movements`).
-- [ ] Stock balance per warehouse & store (`stock_balances`).
-- [ ] Stock adjustment with reason recording.
-- [ ] Stock transfer workflow with dispatch/receipt confirmations.
-- [ ] Stock opname with discrepancy adjustment approval.
-- [ ] Purchase orders & goods receipt.
+### Phase 3: Inventory & Purchasing (COMPLETED ✅)
+- [x] Immutable double-entry inventory ledger (`inventory_movements`):
+  - Every stock movement records `movement_type`, `quantity_change`, `balance_before`, `balance_after`, `unit_cost`, `reference_type`, `reference_id`, and `user_id`.
+  - Negative stock prevention enforced with `DomainException` when overselling is disabled (`allowNegative = false`).
+- [x] Stock balance per warehouse & store (`stock_balances`):
+  - Pessimistic row locking (`lockForUpdate()`) ensures zero concurrency race conditions.
+  - Tracking of physical quantity, reserved quantity, and minimum stock alerts.
+- [x] Stock adjustments with reason recording (`stock_adjustments` & `stock_adjustment_items`):
+  - Quick manual adjustment modal in React UI with reasons: `correction`, `damage`, `expired`, `lost`, `found`.
+- [x] Inter-warehouse stock transfer workflow (`stock_transfers` & `stock_transfer_items`):
+  - Full lifecycle: `draft` → `in_transit` (dispatch movement from source warehouse) → `completed` (receipt movement into destination warehouse).
+- [x] Periodic stock opnames (`stock_opnames` & `stock_opname_items`):
+  - Physical inventory counting, variance recording, and automatic discrepancy adjustments via `InventoryService::applyStockOpname`.
+- [x] Purchase Orders & Goods Receipt (`purchase_orders`, `purchase_order_items`, `goods_receipts`, `goods_receipt_items`):
+  - Automatic calculation of subtotal, 11% PPN tax, and total amount.
+  - Partial or full goods receipt modal updating physical stock balances and shifting PO status to `partially_received` or `received`.
+- [x] Web & React UI Pages:
+  - `/inventory`: Real-time stock valuation KPI, low stock alerts, warehouse switcher, double-entry ledger tab, quick adjustment modal.
+  - `/stock-transfers`: Multi-warehouse transfers list, dispatch action button, goods receipt modal.
+  - `/purchase-orders`: Supplier PO list, status badges, create PO modal with auto subtotal/tax calculation, goods receipt modal.
+- [x] RESTful API Endpoints:
+  - `GET /api/v1/inventory/balances`
+  - `GET /api/v1/inventory/movements`
+  - `POST /api/v1/inventory/adjust`
+  - `GET /api/v1/inventory/transfers`
+  - `GET /api/v1/inventory/purchase-orders`
+- [x] 100% Automated Tests passing (26 tests, 92 assertions in `tests/Feature/InventoryTest.php`).
 
 ### Phase 4: Core POS Engine (PENDING 📋)
 - [ ] Fixed viewport desktop POS layout (left product grid, right sticky cart).

@@ -27,3 +27,4 @@ class CustomerGroup extends Model
         return $this->hasMany(Customer::class);
     }
 }
+

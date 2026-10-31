@@ -38,3 +38,4 @@ class Unit extends Model
         return $this->hasMany(UnitConversion::class, 'to_unit_id');
     }
 }
+
