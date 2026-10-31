@@ -1,5 +1,11 @@
 <?php
 
+use App\Models\Brand;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Supplier;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -69,6 +75,52 @@ Route::prefix('v1')->group(function () {
             $request->user()->currentAccessToken()->delete();
             return response()->json(['message' => 'Berhasil logout.']);
         });
+
+        // Phase 2: Master Data APIs
+        Route::get('/products', function (Request $request) {
+            $query = Product::with(['category:id,name', 'brand:id,name', 'unit:id,code,name']);
+            if ($search = $request->query('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'ilike', "%{$search}%")
+                      ->orWhere('sku', 'ilike', "%{$search}%")
+                      ->orWhere('barcode', 'ilike', "%{$search}%");
+                });
+            }
+            return response()->json($query->paginate(20));
+        });
+
+        Route::get('/products/{id}', function (string $id) {
+            $product = Product::with(['category', 'brand', 'unit', 'variants'])->findOrFail($id);
+            return response()->json(['product' => $product]);
+        });
+
+        Route::get('/customers', function (Request $request) {
+            $query = Customer::with('customerGroup:id,name,discount_percentage');
+            if ($search = $request->query('search')) {
+                $query->where('name', 'ilike', "%{$search}%")
+                      ->orWhere('phone', 'ilike', "%{$search}%");
+            }
+            return response()->json($query->paginate(20));
+        });
+
+        Route::get('/suppliers', function (Request $request) {
+            $query = Supplier::query();
+            if ($search = $request->query('search')) {
+                $query->where('name', 'ilike', "%{$search}%");
+            }
+            return response()->json($query->paginate(20));
+        });
+
+        Route::get('/categories', function () {
+            return response()->json(['categories' => ProductCategory::where('is_active', true)->get()]);
+        });
+
+        Route::get('/brands', function () {
+            return response()->json(['brands' => Brand::where('is_active', true)->get()]);
+        });
+
+        Route::get('/units', function () {
+            return response()->json(['units' => Unit::where('is_active', true)->get()]);
+        });
     });
 });
-

@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,4 +21,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/stores/switch', [AuthController::class, 'switchStore'])->name('stores.switch');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Phase 2: Master Data
+    Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
+    Route::resource('customers', CustomerController::class)->except(['create', 'show', 'edit']);
+    Route::resource('suppliers', SupplierController::class)->except(['create', 'show', 'edit']);
 });

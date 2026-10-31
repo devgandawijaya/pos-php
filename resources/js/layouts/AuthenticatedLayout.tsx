@@ -13,7 +13,8 @@ import {
     Menu,
     X,
     Building2,
-    ShieldCheck
+    ShieldCheck,
+    Truck
 } from 'lucide-react';
 import { PageProps } from '@/types';
 
@@ -119,22 +120,45 @@ export default function AuthenticatedLayout({ children }: PropsWithChildren) {
                     </div>
 
                     <div className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                        Master Data
+                        Master Data & CRM
                     </div>
 
-                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">
-                        <Package className="w-4 h-4 text-slate-500" />
+                    <Link
+                        href="/products"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <Package className="w-4 h-4 text-blue-400" />
                         <span>Katalog Produk</span>
+                    </Link>
+
+                    <Link
+                        href="/customers"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <Users className="w-4 h-4 text-emerald-400" />
+                        <span>Pelanggan & CRM</span>
+                    </Link>
+
+                    <Link
+                        href="/suppliers"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-colors"
+                    >
+                        <Truck className="w-4 h-4 text-purple-400" />
+                        <span>Mitra Supplier</span>
+                    </Link>
+
+                    <div className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Operasional Lanjutan
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">
                         <Warehouse className="w-4 h-4 text-slate-500" />
-                        <span>Inventaris & Gudang</span>
+                        <span>Inventaris & Gudang (Phase 3)</span>
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">
                         <BarChart3 className="w-4 h-4 text-slate-500" />
-                        <span>Laporan Penjualan</span>
+                        <span>Laporan Penjualan (Phase 7)</span>
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 cursor-not-allowed">

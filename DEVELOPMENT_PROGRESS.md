@@ -9,7 +9,7 @@
 | **Frontend** | React 19 / Inertia.js / TypeScript / Tailwind CSS / Lucide |
 | **Database** | PostgreSQL 16 (Shared Database with `tenant_id`) |
 | **Cache & Queue**| Redis 7 |
-| **Current Phase**| **Phase 1: Foundation (COMPLETED ✅) → Moving to Phase 2** |
+| **Current Phase**| **Phase 2: SaaS & Master Data (COMPLETED ✅) → Moving to Phase 3 (Inventory & Purchasing)** |
 | **Last Updated** | 2026-10-31 |
 
 ---
@@ -48,35 +48,50 @@ flowchart LR
 - [x] Database migrations executed on PostgreSQL 16:
   - `tenants`, `users`, `roles`, `permissions`, `role_permissions`, `user_roles`
   - `stores`, `warehouses`, `registers`, `user_store_access`
-- [x] Database seeder with realistic multi-tenant data:
-  - Platform Super Admin (`superadmin@pos.test`)
-  - Tenant A ("PT Retail Jaya Abadi") with 2 stores, 1 warehouse, 2 registers, Owner, Manager, Cashier
-  - Tenant B ("CV Maju Bersama") with store & owner for tenant boundary verification
-- [x] Authentication system implemented:
-  - Web session login/logout via Inertia
-  - REST API login/logout via Laravel Sanctum
-  - Tenant context verification & store switcher
-- [x] Responsive React 19 UI with Tailwind CSS:
-  - AuthenticatedLayout with collapsible sidebar, tenant badge, store switcher, profile menu
-  - Login page with demo credentials quick-filler
-  - Dashboard with KPI metrics cards and tenant isolation specs
-- [x] 100% Automated Tests passing (15 tests, 32 assertions):
-  - Tenant isolation test (Tenant A cannot see Tenant B data).
-  - Model automatic tenant_id injection.
-  - Super Admin cross-tenant visibility.
-  - RBAC granular permission & role enforcement.
-  - Store scoping access checks.
-  - Authentication lifecycle (login, bad password, inactive user, logout).
+- [x] Database seeder with realistic multi-tenant data.
+- [x] Authentication system implemented (Session & Sanctum).
+- [x] Responsive React 19 UI with Tailwind CSS.
+- [x] 100% Automated Tests passing.
 
-### Phase 2: SaaS & Master Data (UPCOMING 📋)
-- [ ] Tenant onboarding wizard & business profile settings.
-- [ ] Product master catalog (categories, brands, units, variants, barcodes).
-- [ ] Customer CRM management & loyalty points.
-- [ ] Supplier catalog & purchase terms.
+### Phase 2: SaaS & Master Data (COMPLETED ✅)
+- [x] Subscription Plans & Subscriptions schema & models:
+  - `SubscriptionPlan` (Starter, Pro, Enterprise with quotas for stores, users, registers)
+  - `Subscription` with active state checking & billing intervals
+- [x] Hierarchical Product Categories (`product_categories` with parent/child relations).
+- [x] Product Brands master table (`brands`).
+- [x] Units of Measure & Conversions (`units` & `unit_conversions`, e.g. 1 BOX = 24 PCS).
+- [x] Product Master Catalog (`products` & `product_variants`):
+  - SKU uniquely scoped per tenant (`['tenant_id', 'sku']`)
+  - Barcode lookup indexing
+  - Exact financial fields: `purchase_cost` and `selling_price` with `NUMERIC(15,2)`
+  - Store-specific pricing override support (`product_prices`)
+- [x] Customer & CRM Management (`customers` & `customer_groups`):
+  - Customer groups with discount tiering
+  - Loyalty points balance tracking
+  - Credit limit enforcement ready
+- [x] Supplier Master Management (`suppliers`):
+  - Supplier codes, contact person, phone, email, address
+  - Payment terms (days) tracking
+- [x] Web & React UI Pages:
+  - `/products`: Full product listing, category filter, search, create/edit modal, currency formatter
+  - `/customers`: Customer directory, loyalty points, customer group tier badge, create/edit modal
+  - `/suppliers`: Supplier directory, payment terms, contact details, create/edit modal
+- [x] RESTful API Endpoints:
+  - `GET /api/v1/products`, `GET /api/v1/products/{id}`
+  - `GET /api/v1/customers`
+  - `GET /api/v1/suppliers`
+  - `GET /api/v1/categories`, `GET /api/v1/brands`, `GET /api/v1/units`
+- [x] 100% Automated Tests passing (20 tests, 48 assertions):
+  - Identical SKU cross-tenant isolation test (Tenant A & B can use same SKU independently)
+  - Customer group & loyalty calculation test
+  - Supplier creation & scoping test
+  - Subscription quota & active status test
+  - REST API Bearer token product query test
 
-### Phase 3: Inventory & Purchasing (PENDING 📋)
+### Phase 3: Inventory & Purchasing (UPCOMING 📋)
 - [ ] Immutable double-entry inventory ledger (`inventory_movements`).
-- [ ] Stock balance per warehouse & store.
+- [ ] Stock balance per warehouse & store (`stock_balances`).
+- [ ] Stock adjustment with reason recording.
 - [ ] Stock transfer workflow with dispatch/receipt confirmations.
 - [ ] Stock opname with discrepancy adjustment approval.
 - [ ] Purchase orders & goods receipt.
