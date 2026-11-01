@@ -23,13 +23,21 @@ class PosEngineTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected Store $store;
+
     protected Register $register;
+
     protected Warehouse $warehouse;
+
     protected User $cashier;
+
     protected Customer $customer;
+
     protected Product $productA;
+
     protected Product $productB;
+
     protected PosCheckoutService $checkoutService;
 
     protected function setUp(): void
@@ -72,7 +80,7 @@ class PosEngineTest extends TestCase
             'status' => 'active',
         ]);
         $this->cashier->stores()->syncWithoutDetaching([
-            $this->store->id => ['is_default' => true, 'tenant_id' => $this->tenant->id]
+            $this->store->id => ['is_default' => true, 'tenant_id' => $this->tenant->id],
         ]);
 
         $this->customer = Customer::create([
@@ -135,8 +143,15 @@ class PosEngineTest extends TestCase
 
     public function test_pos_terminal_screen_can_be_rendered(): void
     {
+        $this->productA->update(['image_url' => 'https://example.com/kopi.jpg']);
+
         $response = $this->actingAs($this->cashier)->get('/pos');
         $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Pos/Terminal')
+            ->has('catalog', 2)
+            ->where('catalog.0.image_url', 'https://example.com/kopi.jpg')
+        );
     }
 
     public function test_checkout_creates_order_and_calculates_financials(): void
@@ -284,7 +299,7 @@ class PosEngineTest extends TestCase
             ->assertJsonPath('status', 'success')
             ->assertJsonStructure([
                 'status',
-                'order' => ['id', 'order_number', 'total_amount', 'paid_amount', 'change_amount']
+                'order' => ['id', 'order_number', 'total_amount', 'paid_amount', 'change_amount'],
             ]);
     }
 
@@ -307,7 +322,7 @@ class PosEngineTest extends TestCase
             ->assertJsonPath('status', 'success')
             ->assertJsonStructure([
                 'status',
-                'order' => ['id', 'order_number', 'total_amount']
+                'order' => ['id', 'order_number', 'total_amount'],
             ]);
     }
 }

@@ -150,7 +150,7 @@ export default function TransfersIndex({ transfers, warehouses, products, filter
                 return (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-300">
                         <Clock className="w-3.5 h-3.5" />
-                        Draft
+                        Draf
                     </span>
                 );
             case 'in_transit':
@@ -531,3 +531,4 @@ export default function TransfersIndex({ transfers, warehouses, products, filter
         </AuthenticatedLayout>
     );
 }
+

@@ -48,4 +48,3 @@ class Store extends Model
             ->withTimestamps();
     }
 }
-

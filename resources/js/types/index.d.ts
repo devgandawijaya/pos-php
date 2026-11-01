@@ -27,6 +27,7 @@ export interface Store {
 export interface Auth {
     user: User | null;
     tenant: Tenant | null;
+    allTenants?: Array<{ id: string; name: string; slug: string }>;
     activeStore: Store | null;
     availableStores: Store[];
 }

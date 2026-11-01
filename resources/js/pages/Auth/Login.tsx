@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Head } from '@inertiajs/react';
+import { useForm, Head, Link } from '@inertiajs/react';
 import GuestLayout from '@/layouts/GuestLayout';
 import { LogIn, Key, Mail, Sparkles } from 'lucide-react';
 
@@ -27,10 +27,10 @@ export default function Login() {
 
     return (
         <GuestLayout
-            title="Masuk ke SaaS POS"
-            subtitle="Gunakan akun Anda untuk mengakses dashboard manajemen atau POS"
+            title="Masuk ke RIPos"
+            subtitle="Republik Indonesia POS — Sistem Kasir Pintar dari phoebehub.com"
         >
-            <Head title="Login Akun" />
+            <Head title="Login Akun - RIPos (Republik Indonesia POS)" />
 
             <form onSubmit={submit} className="space-y-4">
                 {/* Email Field */}
@@ -101,6 +101,23 @@ export default function Login() {
                     <LogIn className="w-4 h-4" />
                     <span>{processing ? 'Memproses Masuk...' : 'Masuk ke Sistem'}</span>
                 </button>
+
+                {/* Register Link */}
+                <div className="text-center pt-2 text-xs text-slate-400">
+                    Belum punya akun usaha?{' '}
+                    <Link
+                        href="/register"
+                        className="font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                        Daftar Uji Coba Gratis 14 Hari
+                    </Link>
+                </div>
+
+                <div className="text-center pt-1 text-[11px] text-slate-500">
+                    <Link href="/" className="hover:text-slate-300 transition-colors">
+                        ← Kembali ke Beranda
+                    </Link>
+                </div>
             </form>
 
             {/* Quick Demo Credentials */}

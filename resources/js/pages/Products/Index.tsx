@@ -13,7 +13,9 @@ import {
     Layers,
     DollarSign,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    Upload,
+    ImageIcon
 } from 'lucide-react';
 
 interface Category {
@@ -37,6 +39,7 @@ interface ProductItem {
     sku: string;
     barcode: string | null;
     name: string;
+    image_url?: string | null;
     purchase_cost: string;
     selling_price: string;
     status: string;
@@ -68,11 +71,28 @@ export default function ProductsIndex({ products, categories, brands, units, fil
     const [search, setSearch] = useState(filters.search || '');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset } = useForm<{
+        name: string;
+        sku: string;
+        barcode: string;
+        image_url: string;
+        image: File | null;
+        category_id: string;
+        brand_id: string;
+        unit_id: string;
+        purchase_cost: number;
+        selling_price: number;
+        min_stock: number;
+        status: string;
+        description: string;
+    }>({
         name: '',
         sku: '',
         barcode: '',
+        image_url: '',
+        image: null,
         category_id: '',
         brand_id: '',
         unit_id: units[0]?.id || '',
@@ -94,16 +114,20 @@ export default function ProductsIndex({ products, categories, brands, units, fil
     const openCreateModal = () => {
         setEditingProduct(null);
         reset();
+        setPreviewUrl(null);
         if (units.length > 0) setData('unit_id', units[0].id);
         setModalOpen(true);
     };
 
     const openEditModal = (p: ProductItem) => {
         setEditingProduct(p);
+        setPreviewUrl(p.image_url || null);
         setData({
             name: p.name,
             sku: p.sku,
             barcode: p.barcode || '',
+            image_url: p.image_url || '',
+            image: null,
             category_id: p.category?.id || '',
             brand_id: p.brand?.id || '',
             unit_id: p.unit?.id || units[0]?.id || '',
@@ -119,14 +143,34 @@ export default function ProductsIndex({ products, categories, brands, units, fil
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editingProduct) {
-            put(`/products/${editingProduct.id}`, {
-                onSuccess: () => setModalOpen(false),
-            });
+            if (data.image) {
+                router.post(`/products/${editingProduct.id}`, {
+                    _method: 'put',
+                    ...data,
+                }, {
+                    forceFormData: true,
+                    onSuccess: () => {
+                        setModalOpen(false);
+                        reset();
+                        setPreviewUrl(null);
+                    },
+                });
+            } else {
+                put(`/products/${editingProduct.id}`, {
+                    onSuccess: () => {
+                        setModalOpen(false);
+                        reset();
+                        setPreviewUrl(null);
+                    },
+                });
+            }
         } else {
             post('/products', {
+                forceFormData: true,
                 onSuccess: () => {
                     setModalOpen(false);
                     reset();
+                    setPreviewUrl(null);
                 },
             });
         }
@@ -245,7 +289,25 @@ export default function ProductsIndex({ products, categories, brands, units, fil
                                             )}
                                         </td>
                                         <td className="py-3 px-4 font-medium text-white">
-                                            {product.name}
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-700/60 flex-shrink-0">
+                                                    <img
+                                                        src={product.image_url || '/images/default-product.svg'}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.currentTarget;
+                                                            if (!target.src.includes('default-product.svg')) {
+                                                                target.src = '/images/default-product.svg';
+                                                            }
+                                                        }}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="font-semibold text-white truncate max-w-xs">{product.name}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="py-3 px-4 text-slate-300">
                                             <div>{product.category?.name || '-'}</div>
@@ -266,14 +328,14 @@ export default function ProductsIndex({ products, categories, brands, units, fil
                                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                                     : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                                             }`}>
-                                                {product.status.toUpperCase()}
+                                                {product.status === 'active' ? 'AKTIF' : product.status === 'draft' ? 'DRAF' : 'DIARSIPKAN'}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right space-x-2">
                                             <button
                                                 onClick={() => openEditModal(product)}
                                                 className="p-1 rounded text-slate-400 hover:text-blue-400 hover:bg-slate-700 transition-colors"
-                                                title="Edit"
+                                                title="Ubah Produk"
                                             >
                                                 <Edit2 className="w-3.5 h-3.5" />
                                             </button>
@@ -315,6 +377,93 @@ export default function ProductsIndex({ products, categories, brands, units, fil
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                            {/* Photo / Gambar Produk */}
+                            <div className="bg-slate-900/60 border border-slate-700/80 rounded-xl p-3.5 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-slate-300 font-semibold flex items-center gap-1.5">
+                                        <ImageIcon className="w-4 h-4 text-blue-400" />
+                                        <span>Foto / Gambar Produk</span>
+                                    </label>
+                                    {previewUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setData((prev) => ({ ...prev, image: null, image_url: '' }));
+                                                setPreviewUrl(null);
+                                            }}
+                                            className="text-[10px] text-rose-400 hover:text-rose-300 transition-colors"
+                                        >
+                                            Hapus Foto
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-3.5">
+                                    {/* Live Preview Box */}
+                                    <div className="w-20 h-20 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center relative shadow-inner">
+                                        {previewUrl ? (
+                                            <img
+                                                src={previewUrl}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    const target = e.currentTarget;
+                                                    if (!target.src.includes('default-product.svg')) {
+                                                        target.src = '/images/default-product.svg';
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center text-slate-500 text-center p-1">
+                                                <ImageIcon className="w-6 h-6 mb-1 opacity-40" />
+                                                <span className="text-[9px]">Belum Ada</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Upload and URL input */}
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors shadow-sm">
+                                                <Upload className="w-3.5 h-3.5" />
+                                                <span>Upload Foto</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/gif,image/svg+xml"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            setData('image', file);
+                                                            setPreviewUrl(URL.createObjectURL(file));
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                            <span className="text-[10px] text-slate-400">JPG, PNG, WebP (Maks 5MB)</span>
+                                        </div>
+                                        {errors.image && <p className="text-rose-400 mt-0.5 text-[10px]">{errors.image}</p>}
+
+                                        <div>
+                                            <input
+                                                type="url"
+                                                placeholder="Atau masukkan URL foto (https://...)"
+                                                value={data.image_url}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setData('image_url', val);
+                                                    if (!data.image) {
+                                                        setPreviewUrl(val || null);
+                                                    }
+                                                }}
+                                                className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-[11px] placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            {errors.image_url && <p className="text-rose-400 mt-0.5 text-[10px]">{errors.image_url}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-slate-300 font-medium mb-1">Nama Produk *</label>
                                 <input
@@ -443,9 +592,9 @@ export default function ProductsIndex({ products, categories, brands, units, fil
                                         onChange={(e) => setData('status', e.target.value)}
                                         className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="active">Active</option>
-                                        <option value="draft">Draft</option>
-                                        <option value="archived">Archived</option>
+                                        <option value="active">Aktif</option>
+                                        <option value="draft">Draf</option>
+                                        <option value="archived">Diarsipkan</option>
                                     </select>
                                 </div>
                             </div>

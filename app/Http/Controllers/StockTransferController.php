@@ -64,7 +64,7 @@ class StockTransferController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         DB::transaction(function () use ($validated, $tenantId) {
-            $transferNumber = 'TRF-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+            $transferNumber = 'TRF-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
             $transfer = StockTransfer::create([
                 'tenant_id' => $tenantId,
@@ -102,6 +102,7 @@ class StockTransferController extends Controller
 
         try {
             $inventoryService->dispatchTransfer($transfer, auth()->id());
+
             return back()->with('success', "Transfer #{$transfer->transfer_number} berhasil dikirim (In Transit).");
         } catch (DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -121,6 +122,7 @@ class StockTransferController extends Controller
 
         try {
             $inventoryService->receiveTransfer($transfer, $receivedQuantities, auth()->id());
+
             return back()->with('success', "Transfer #{$transfer->transfer_number} telah selesai diterima di gudang tujuan.");
         } catch (DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);

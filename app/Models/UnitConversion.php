@@ -33,4 +33,3 @@ class UnitConversion extends Model
         return $this->belongsTo(Unit::class, 'to_unit_id');
     }
 }
-

@@ -80,4 +80,3 @@ class Product extends Model
         return (string) $this->selling_price;
     }
 }
-

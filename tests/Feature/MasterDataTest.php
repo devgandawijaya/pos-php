@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\Brand;
 use App\Models\Customer;
 use App\Models\CustomerGroup;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Supplier;
@@ -14,6 +12,8 @@ use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class MasterDataTest extends TestCase
@@ -177,10 +177,68 @@ class MasterDataTest extends TestCase
 
         $token = $user->createToken('test-token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/v1/products');
 
         $response->assertStatus(200);
         $response->assertJsonFragment(['sku' => 'PRD-API-01']);
+    }
+
+    public function test_product_can_be_created_and_updated_with_photo(): void
+    {
+        Storage::fake('public');
+
+        $tenant = Tenant::create(['name' => 'Store Photo Tenant', 'slug' => 'photo-tenant']);
+        $unit = Unit::create(['tenant_id' => $tenant->id, 'code' => 'PCS', 'name' => 'Pieces']);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Manager User',
+            'email' => 'manager@photo.test',
+            'password' => bcrypt('password'),
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. Create with uploaded file
+        $file = UploadedFile::fake()->image('coffee.jpg');
+
+        $response = $this->post('/products', [
+            'name' => 'Kopi Arabika Baru',
+            'sku' => 'PRD-NEW-01',
+            'unit_id' => $unit->id,
+            'purchase_cost' => 20000,
+            'selling_price' => 35000,
+            'image' => $file,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $product = Product::where('sku', 'PRD-NEW-01')->first();
+        $this->assertNotNull($product);
+        $this->assertStringStartsWith('/storage/products/', $product->image_url);
+
+        $storedPath = str_replace('/storage/', '', $product->image_url);
+        Storage::disk('public')->assertExists($storedPath);
+
+        // 2. Update with new image
+        $newFile = UploadedFile::fake()->image('coffee_updated.jpg');
+        $updateResponse = $this->put("/products/{$product->id}", [
+            'name' => 'Kopi Arabika Premium Updated',
+            'sku' => 'PRD-NEW-01',
+            'unit_id' => $unit->id,
+            'purchase_cost' => 25000,
+            'selling_price' => 45000,
+            'status' => 'active',
+            'image' => $newFile,
+        ]);
+
+        $updateResponse->assertSessionHasNoErrors();
+        $product->refresh();
+        $this->assertEquals('Kopi Arabika Premium Updated', $product->name);
+        $this->assertStringStartsWith('/storage/products/', $product->image_url);
+
+        $newStoredPath = str_replace('/storage/', '', $product->image_url);
+        Storage::disk('public')->assertExists($newStoredPath);
     }
 }

@@ -32,4 +32,3 @@ class EnsureHasPermission
         abort(403, 'Anda tidak memiliki hak akses untuk tindakan ini.');
     }
 }
-

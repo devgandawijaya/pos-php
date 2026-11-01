@@ -40,4 +40,3 @@ class TenantManager
         return $this->currentTenant !== null;
     }
 }
-

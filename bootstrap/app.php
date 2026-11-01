@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\EnsureHasRole;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\TenantContextMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(SecurityHeadersMiddleware::class);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             TenantContextMiddleware::class,

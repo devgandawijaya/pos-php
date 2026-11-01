@@ -8,10 +8,10 @@ use App\Models\CustomerGroup;
 use App\Models\Permission;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Register;
-use App\Models\Role;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\Register;
+use App\Models\Role;
 use App\Models\StockBalance;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
@@ -132,7 +132,31 @@ class DatabaseSeeder extends Seeder
                 'shift.open', 'shift.close', 'shift.variance.approve', 'shift.cash_movement',
                 'product.view', 'customer.view', 'customer.manage', 'supplier.view',
                 'inventory.view', 'inventory.transfer', 'inventory.stock_opname',
-                'reports.sales.view'
+                'reports.sales.view',
+            ])->pluck('id')
+        );
+
+        $roleSupervisor = Role::firstOrCreate(
+            ['slug' => 'supervisor', 'tenant_id' => null],
+            ['name' => 'Supervisor Kasir & Toko', 'description' => 'Supervisor lantai kasir, otorisasi diskon, void, dan pengawasan shift', 'is_system' => true]
+        );
+        $roleSupervisor->permissions()->sync(
+            Permission::whereIn('name', [
+                'store.view', 'pos.terminal.access', 'pos.sale.create', 'pos.sale.hold_resume',
+                'pos.sale.void', 'pos.sale.refund', 'pos.discount.apply', 'pos.discount.override',
+                'shift.open', 'shift.close', 'shift.variance.approve', 'shift.cash_movement',
+                'product.view', 'customer.view', 'customer.manage', 'reports.sales.view',
+            ])->pluck('id')
+        );
+
+        $roleInventoryStaff = Role::firstOrCreate(
+            ['slug' => 'inventory-staff', 'tenant_id' => null],
+            ['name' => 'Staf Gudang & Logistik', 'description' => 'Pengelolaan mutasi stok, transfer barang, dan penerimaan PO', 'is_system' => true]
+        );
+        $roleInventoryStaff->permissions()->sync(
+            Permission::whereIn('name', [
+                'store.view', 'product.view', 'supplier.view',
+                'inventory.view', 'inventory.transfer', 'inventory.stock_opname',
             ])->pluck('id')
         );
 
@@ -143,7 +167,7 @@ class DatabaseSeeder extends Seeder
         $roleCashier->permissions()->sync(
             Permission::whereIn('name', [
                 'store.view', 'pos.terminal.access', 'pos.sale.create', 'pos.sale.hold_resume',
-                'pos.discount.apply', 'shift.open', 'shift.close', 'shift.cash_movement', 'product.view', 'customer.view'
+                'pos.discount.apply', 'shift.open', 'shift.close', 'shift.cash_movement', 'product.view', 'customer.view',
             ])->pluck('id')
         );
 
@@ -410,6 +434,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catBeverages->id,
                 'brand_id' => $brandLocal->id,
                 'unit_id' => $unitPcs->id,
+                'image_url' => 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 38000,
                 'selling_price' => 68000,
                 'min_stock' => 10,
@@ -422,6 +447,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catBeverages->id,
                 'brand_id' => $brandNestle->id,
                 'unit_id' => $unitBox->id,
+                'image_url' => 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 11500,
                 'selling_price' => 22000,
                 'min_stock' => 20,
@@ -434,6 +460,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catFood->id,
                 'brand_id' => $brandIndofood->id,
                 'unit_id' => $unitPcs->id,
+                'image_url' => 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 2800,
                 'selling_price' => 4500,
                 'min_stock' => 50,
@@ -446,6 +473,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catBeverages->id,
                 'brand_id' => $brandNestle->id,
                 'unit_id' => $unitPcs->id,
+                'image_url' => 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 2500,
                 'selling_price' => 5000,
                 'min_stock' => 48,
@@ -458,6 +486,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catGroceries->id,
                 'brand_id' => $brandNestle->id,
                 'unit_id' => $unitPcs->id,
+                'image_url' => 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 17000,
                 'selling_price' => 25000,
                 'min_stock' => 12,
@@ -470,6 +499,7 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $catFood->id,
                 'brand_id' => $brandIndofood->id,
                 'unit_id' => $unitPack->id,
+                'image_url' => 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=400&q=80',
                 'purchase_cost' => 8500,
                 'selling_price' => 16000,
                 'min_stock' => 15,
@@ -478,10 +508,13 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($productsA as $item) {
-            Product::firstOrCreate(
+            $prod = Product::firstOrCreate(
                 ['tenant_id' => $tenantA->id, 'sku' => $item['sku']],
                 array_merge($item, ['tenant_id' => $tenantA->id, 'track_inventory' => true, 'status' => 'active'])
             );
+            if (! $prod->image_url && ! empty($item['image_url'])) {
+                $prod->update(['image_url' => $item['image_url']]);
+            }
         }
 
         // Customer Groups & Customers for Tenant A
@@ -737,5 +770,8 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+
+        // 7. Seed Large Scale Operational Dummy Data (>100 records per entity)
+        $this->call(LargeScaleDummyDataSeeder::class);
     }
 }

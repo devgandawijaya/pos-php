@@ -8,6 +8,7 @@ use App\Models\ProductCategory;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,8 +24,8 @@ class ProductController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('sku', 'ilike', "%{$search}%")
-                  ->orWhere('barcode', 'ilike', "%{$search}%");
+                    ->orWhere('sku', 'ilike', "%{$search}%")
+                    ->orWhere('barcode', 'ilike', "%{$search}%");
             });
         }
 
@@ -60,18 +61,27 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:50', 'unique:products,sku,NULL,id,tenant_id,' . $tenantId],
+            'sku' => ['required', 'string', 'max:50', 'unique:products,sku,NULL,id,tenant_id,'.$tenantId],
             'barcode' => ['nullable', 'string', 'max:100'],
             'category_id' => ['nullable', 'uuid', 'exists:product_categories,id'],
             'brand_id' => ['nullable', 'uuid', 'exists:brands,id'],
             'unit_id' => ['required', 'uuid', 'exists:units,id'],
             'purchase_cost' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif,svg', 'max:5120'],
+            'image_url' => ['nullable', 'string', 'max:1000'],
             'track_inventory' => ['boolean'],
             'min_stock' => ['numeric', 'min:0'],
             'max_stock' => ['numeric', 'min:0'],
             'description' => ['nullable', 'string'],
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image_url'] = '/storage/'.$path;
+        }
+
+        unset($validated['image']);
 
         Product::create($validated);
 
@@ -87,19 +97,32 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:50', 'unique:products,sku,' . $product->id . ',id,tenant_id,' . $tenantId],
+            'sku' => ['required', 'string', 'max:50', 'unique:products,sku,'.$product->id.',id,tenant_id,'.$tenantId],
             'barcode' => ['nullable', 'string', 'max:100'],
             'category_id' => ['nullable', 'uuid', 'exists:product_categories,id'],
             'brand_id' => ['nullable', 'uuid', 'exists:brands,id'],
             'unit_id' => ['required', 'uuid', 'exists:units,id'],
             'purchase_cost' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif,svg', 'max:5120'],
+            'image_url' => ['nullable', 'string', 'max:1000'],
             'track_inventory' => ['boolean'],
             'min_stock' => ['numeric', 'min:0'],
             'max_stock' => ['numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:active,draft,archived'],
         ]);
+
+        if ($request->hasFile('image')) {
+            if ($product->image_url && str_starts_with($product->image_url, '/storage/products/')) {
+                $oldPath = str_replace('/storage/', '', $product->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image_url'] = '/storage/'.$path;
+        }
+
+        unset($validated['image']);
 
         $product->update($validated);
 
@@ -116,4 +139,3 @@ class ProductController extends Controller
         return back()->with('success', 'Produk berhasil diarsipkan.');
     }
 }
-

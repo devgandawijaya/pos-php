@@ -20,8 +20,8 @@ class SupplierController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('code', 'ilike', "%{$search}%")
-                  ->orWhere('contact_person', 'ilike', "%{$search}%");
+                    ->orWhere('code', 'ilike', "%{$search}%")
+                    ->orWhere('contact_person', 'ilike', "%{$search}%");
             });
         }
 
@@ -42,7 +42,7 @@ class SupplierController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:30', 'unique:suppliers,code,NULL,id,tenant_id,' . $tenantId],
+            'code' => ['required', 'string', 'max:30', 'unique:suppliers,code,NULL,id,tenant_id,'.$tenantId],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email'],
@@ -65,7 +65,7 @@ class SupplierController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:30', 'unique:suppliers,code,' . $supplier->id . ',id,tenant_id,' . $tenantId],
+            'code' => ['required', 'string', 'max:30', 'unique:suppliers,code,'.$supplier->id.',id,tenant_id,'.$tenantId],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email'],
@@ -90,4 +90,3 @@ class SupplierController extends Controller
         return back()->with('success', 'Supplier berhasil dihapus.');
     }
 }
-

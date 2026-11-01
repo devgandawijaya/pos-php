@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Store;
+use App\Models\Tenant;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -44,12 +45,12 @@ class HandleInertiaRequests extends Middleware
         $activeStoreId = $request->session()->get('active_store_id');
         $activeStore = null;
 
-        if ($user && $user->tenant_id) {
+        if ($user) {
             if ($activeStoreId) {
                 $activeStore = Store::find($activeStoreId);
             }
             if (! $activeStore) {
-                $activeStore = $user->defaultStore();
+                $activeStore = $user->defaultStore() ?? ($tenant ? Store::where('tenant_id', $tenant->id)->first() : null);
                 if ($activeStore) {
                     $request->session()->put('active_store_id', $activeStore->id);
                 }
@@ -58,7 +59,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'appName' => config('app.name', 'Enterprise SaaS POS'),
+            'appName' => config('app.name', 'RIPos'),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -77,16 +78,21 @@ class HandleInertiaRequests extends Middleware
                     'timezone' => $tenant->timezone,
                     'status' => $tenant->status,
                 ] : null,
+                'allTenants' => $user && $user->isSuperAdmin()
+                    ? Tenant::where('is_active', true)->select('id', 'name', 'slug')->get()
+                    : [],
                 'activeStore' => $activeStore ? [
                     'id' => $activeStore->id,
                     'code' => $activeStore->code,
                     'name' => $activeStore->name,
                     'taxPercentage' => $activeStore->tax_percentage,
                 ] : null,
-                'availableStores' => $user && $user->tenant_id ? (
-                    $user->isTenantOwner() || $user->hasRole('company-admin')
-                        ? Store::where('is_active', true)->select('id', 'code', 'name')->get()
-                        : $user->stores()->where('is_active', true)->select('stores.id', 'stores.code', 'stores.name')->get()
+                'availableStores' => $user ? (
+                    $user->isSuperAdmin()
+                        ? ($tenant ? Store::where('tenant_id', $tenant->id)->where('is_active', true)->select('id', 'code', 'name')->get() : Store::where('is_active', true)->select('id', 'code', 'name')->get())
+                        : ($user->isTenantOwner() || $user->hasRole('company-admin')
+                            ? Store::where('is_active', true)->select('id', 'code', 'name')->get()
+                            : $user->stores()->where('is_active', true)->select('stores.id', 'stores.code', 'stores.name')->get())
                 ) : [],
             ],
             'flash' => [
@@ -97,4 +103,3 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 }
-

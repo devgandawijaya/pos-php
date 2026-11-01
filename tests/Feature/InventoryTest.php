@@ -24,11 +24,17 @@ class InventoryTest extends TestCase
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected Store $store;
+
     protected Warehouse $warehouseA;
+
     protected Warehouse $warehouseB;
+
     protected User $user;
+
     protected Product $product;
+
     protected InventoryService $inventoryService;
 
     protected function setUp(): void
@@ -332,8 +338,8 @@ class InventoryTest extends TestCase
             ->assertJsonStructure([
                 'status',
                 'data' => [
-                    '*' => ['id', 'quantity', 'product', 'warehouse']
-                ]
+                    '*' => ['id', 'quantity', 'product', 'warehouse'],
+                ],
             ]);
 
         // Test API movements
@@ -344,8 +350,8 @@ class InventoryTest extends TestCase
             ->assertJsonStructure([
                 'status',
                 'data' => [
-                    '*' => ['id', 'movement_type', 'quantity_change', 'balance_before', 'balance_after']
-                ]
+                    '*' => ['id', 'movement_type', 'quantity_change', 'balance_before', 'balance_after'],
+                ],
             ]);
     }
 }

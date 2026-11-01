@@ -21,8 +21,8 @@ class CustomerController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('phone', 'ilike', "%{$search}%")
-                  ->orWhere('code', 'ilike', "%{$search}%");
+                    ->orWhere('phone', 'ilike', "%{$search}%")
+                    ->orWhere('code', 'ilike', "%{$search}%");
             });
         }
 
@@ -44,7 +44,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:30', 'unique:customers,code,NULL,id,tenant_id,' . $tenantId],
+            'code' => ['required', 'string', 'max:30', 'unique:customers,code,NULL,id,tenant_id,'.$tenantId],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email'],
             'address' => ['nullable', 'string'],
@@ -67,7 +67,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:30', 'unique:customers,code,' . $customer->id . ',id,tenant_id,' . $tenantId],
+            'code' => ['required', 'string', 'max:30', 'unique:customers,code,'.$customer->id.',id,tenant_id,'.$tenantId],
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email'],
             'address' => ['nullable', 'string'],
@@ -92,4 +92,3 @@ class CustomerController extends Controller
         return back()->with('success', 'Pelanggan berhasil dihapus.');
     }
 }
-

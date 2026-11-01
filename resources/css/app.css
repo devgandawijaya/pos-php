@@ -8,3 +8,29 @@
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
+
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #printable-receipt, #printable-receipt * {
+        visibility: visible !important;
+    }
+    #printable-receipt {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 4px !important;
+        box-shadow: none !important;
+        border: none !important;
+        color: #000 !important;
+        background: #fff !important;
+    }
+    @page {
+        margin: 0;
+        size: auto;
+    }
+}

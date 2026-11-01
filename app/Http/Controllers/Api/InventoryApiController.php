@@ -147,7 +147,7 @@ class InventoryApiController extends Controller
                 productId: $validated['product_id'],
                 movementType: 'MANUAL_ADJUSTMENT',
                 quantityChange: $quantityChange,
-                notes: "API Adjustment ({$validated['reason']}): " . ($validated['notes'] ?? '-'),
+                notes: "API Adjustment ({$validated['reason']}): ".($validated['notes'] ?? '-'),
                 userId: auth()->id()
             );
 

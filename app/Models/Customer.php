@@ -39,4 +39,3 @@ class Customer extends Model
         return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
     }
 }
-

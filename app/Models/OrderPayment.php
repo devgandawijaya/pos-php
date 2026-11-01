@@ -15,18 +15,29 @@ class OrderPayment extends Model
     protected $fillable = [
         'tenant_id',
         'order_id',
+        'shift_id',
         'payment_method',
         'amount',
         'reference_number',
+        'gateway_transaction_id',
+        'payment_channel',
+        'approval_code',
+        'metadata',
         'status',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'metadata' => 'array',
     ];
 
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
     }
 }

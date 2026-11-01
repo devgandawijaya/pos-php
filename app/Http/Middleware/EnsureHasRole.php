@@ -30,4 +30,3 @@ class EnsureHasRole
         abort(403, 'Anda tidak memiliki role yang diizinkan untuk mengakses halaman ini.');
     }
 }
-

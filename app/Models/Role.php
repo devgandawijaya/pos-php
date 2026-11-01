@@ -53,4 +53,3 @@ class Role extends Model
         $this->permissions()->syncWithoutDetaching([$permission->id]);
     }
 }
-

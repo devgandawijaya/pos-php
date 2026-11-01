@@ -41,4 +41,3 @@ class Subscription extends Model
             && ($this->ends_at === null || $this->ends_at->isFuture());
     }
 }
-

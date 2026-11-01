@@ -12,6 +12,7 @@ use App\Models\StockBalance;
 use App\Models\Store;
 use App\Models\Warehouse;
 use App\Services\PosCheckoutService;
+use App\Services\ShiftService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class PosController extends Controller
     /**
      * Render the fixed-viewport POS Terminal screen.
      */
-    public function terminal(Request $request): Response
+    public function terminal(Request $request, ShiftService $shiftService): Response
     {
         $user = $request->user();
         $tenantId = $user->tenant_id;
@@ -63,7 +64,7 @@ class PosController extends Controller
         $products = Product::where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->with(['category:id,name', 'unit:id,code'])
-            ->select('id', 'name', 'sku', 'barcode', 'category_id', 'unit_id', 'selling_price', 'purchase_cost', 'track_inventory')
+            ->select('id', 'name', 'sku', 'barcode', 'category_id', 'unit_id', 'image_url', 'selling_price', 'purchase_cost', 'track_inventory')
             ->orderBy('name')
             ->get();
 
@@ -85,6 +86,7 @@ class PosController extends Controller
                 'category_id' => $p->category_id,
                 'category_name' => $p->category?->name ?? 'Umum',
                 'unit_code' => $p->unit?->code ?? 'PCS',
+                'image_url' => $p->image_url,
                 'selling_price' => (float) $p->selling_price,
                 'stock' => (float) ($stockMap[$p->id] ?? 0),
                 'track_inventory' => (bool) $p->track_inventory,
@@ -112,10 +114,22 @@ class PosController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Active shift and summary for register
+        $activeShift = null;
+        $shiftSummary = null;
+        if ($store) {
+            $activeShift = $shiftService->getActiveShift($store->id, $register?->id);
+            if ($activeShift) {
+                $shiftSummary = $shiftService->calculateExpectedCash($activeShift);
+            }
+        }
+
         return Inertia::render('Pos/Terminal', [
             'store' => $store,
             'register' => $register,
             'warehouse' => $warehouse,
+            'activeShift' => $activeShift,
+            'shiftSummary' => $shiftSummary,
             'catalog' => $catalog,
             'categories' => $categories,
             'customers' => $customers,
@@ -131,9 +145,17 @@ class PosController extends Controller
         $validated = $request->validate([
             'store_id' => ['required', 'uuid', 'exists:stores,id'],
             'register_id' => ['nullable', 'uuid', 'exists:registers,id'],
+            'shift_id' => ['nullable', 'uuid', 'exists:shifts,id'],
             'customer_id' => ['nullable', 'uuid', 'exists:customers,id'],
-            'payment_method' => ['required', 'string', 'in:cash,qris,debit,credit,transfer'],
-            'paid_amount' => ['required', 'numeric', 'min:0'],
+            'payment_method' => ['nullable', 'string', 'in:cash,qris,debit,credit,transfer,split'],
+            'paid_amount' => ['nullable', 'numeric', 'min:0'],
+            'payments' => ['nullable', 'array'],
+            'payments.*.payment_method' => ['required_with:payments', 'string', 'in:cash,qris,debit,credit,transfer'],
+            'payments.*.amount' => ['required_with:payments', 'numeric', 'min:0.01'],
+            'payments.*.paid_amount' => ['nullable', 'numeric', 'min:0'],
+            'payments.*.reference_number' => ['nullable', 'string', 'max:100'],
+            'payments.*.gateway_transaction_id' => ['nullable', 'string', 'max:100'],
+            'payments.*.approval_code' => ['nullable', 'string', 'max:50'],
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:500'],
             'idempotency_key' => ['nullable', 'string', 'max:100'],
@@ -143,6 +165,10 @@ class PosController extends Controller
             'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
             'items.*.notes' => ['nullable', 'string', 'max:255'],
         ]);
+
+        if (empty($validated['payments']) && empty($validated['payment_method'])) {
+            $validated['payment_method'] = 'cash';
+        }
 
         try {
             $order = $checkoutService->checkout(
@@ -224,9 +250,14 @@ class PosController extends Controller
 
         $order->load(['items.product', 'payments', 'customer', 'store', 'cashier']);
 
+        $register = Register::where('store_id', $order->store_id)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
         return response()->json([
             'status' => 'success',
             'order' => $order,
+            'register' => $register,
         ]);
     }
 }

@@ -21,7 +21,6 @@ trait BelongsToStore
      */
     public function scopeForStore(Builder $query, string $storeId): Builder
     {
-        return $query->where($this->getTable() . '.store_id', $storeId);
+        return $query->where($this->getTable().'.store_id', $storeId);
     }
 }
-

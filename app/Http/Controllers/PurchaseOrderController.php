@@ -74,7 +74,7 @@ class PurchaseOrderController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         DB::transaction(function () use ($validated, $tenantId) {
-            $poNumber = 'PO-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+            $poNumber = 'PO-'.date('Ymd').'-'.strtoupper(Str::random(4));
 
             $subtotal = 0;
             foreach ($validated['items'] as $item) {

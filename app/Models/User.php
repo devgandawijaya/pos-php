@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -58,7 +57,16 @@ class User extends Authenticatable
 
     public function defaultStore(): ?Store
     {
-        return $this->stores()->wherePivot('is_default', true)->first() ?? $this->stores()->first();
+        $store = $this->stores()->wherePivot('is_default', true)->first() ?? $this->stores()->first();
+        if (! $store && $this->isSuperAdmin()) {
+            if ($this->tenant_id) {
+                return Store::where('tenant_id', $this->tenant_id)->where('is_active', true)->first();
+            }
+
+            return Store::where('is_active', true)->first();
+        }
+
+        return $store;
     }
 
     public function isSuperAdmin(): bool
@@ -101,7 +109,7 @@ class User extends Authenticatable
             $role = Role::where('slug', $role)
                 ->where(function ($q) {
                     $q->whereNull('tenant_id')
-                      ->orWhere('tenant_id', $this->tenant_id);
+                        ->orWhere('tenant_id', $this->tenant_id);
                 })
                 ->firstOrFail();
         }

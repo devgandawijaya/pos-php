@@ -180,7 +180,7 @@ export default function PurchasingIndex({ orders, suppliers, warehouses, product
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'draft':
-                return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-300">Draft</span>;
+                return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-300">Draf</span>;
             case 'approved':
                 return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Disetujui</span>;
             case 'partially_received':
@@ -595,3 +595,4 @@ export default function PurchasingIndex({ orders, suppliers, warehouses, product
         </AuthenticatedLayout>
     );
 }
+

@@ -7,8 +7,6 @@ use App\Models\GoodsReceiptItem;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
-use App\Models\StockAdjustment;
-use App\Models\StockAdjustmentItem;
 use App\Models\StockBalance;
 use App\Models\StockOpname;
 use App\Models\StockTransfer;
@@ -69,7 +67,7 @@ class InventoryService
 
             if ($balanceAfter < 0 && ! $allowNegative && $product->track_inventory) {
                 throw new DomainException(
-                    "Stok tidak mencukupi untuk {$product->name} (SKU: {$product->sku}). Stok saat ini: {$balanceBefore}, diminta: " . abs($quantityChange)
+                    "Stok tidak mencukupi untuk {$product->name} (SKU: {$product->sku}). Stok saat ini: {$balanceBefore}, diminta: ".abs($quantityChange)
                 );
             }
 
@@ -198,7 +196,7 @@ class InventoryService
     public function receiveGoods(PurchaseOrder $po, array $receivedItems, ?string $notes = null, ?string $userId = null): GoodsReceipt
     {
         return DB::transaction(function () use ($po, $receivedItems, $notes, $userId) {
-            $receiptNumber = 'GR-' . strtoupper(Str::random(8));
+            $receiptNumber = 'GR-'.strtoupper(Str::random(8));
 
             $receipt = GoodsReceipt::create([
                 'tenant_id' => $po->tenant_id,
@@ -215,10 +213,14 @@ class InventoryService
 
             foreach ($receivedItems as $itemData) {
                 $poItem = $po->items->firstWhere('id', $itemData['purchase_order_item_id']);
-                if (! $poItem) continue;
+                if (! $poItem) {
+                    continue;
+                }
 
                 $qtyReceived = (float) $itemData['quantity_received'];
-                if ($qtyReceived <= 0) continue;
+                if ($qtyReceived <= 0) {
+                    continue;
+                }
 
                 GoodsReceiptItem::create([
                     'tenant_id' => $po->tenant_id,

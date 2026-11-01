@@ -105,4 +105,3 @@ class TenantIsolationTest extends TestCase
         $this->assertCount(2, $allStores);
     }
 }
-

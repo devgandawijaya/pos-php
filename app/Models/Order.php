@@ -12,14 +12,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    use BelongsToTenant, BelongsToStore, HasFactory, HasUuids;
+    use BelongsToStore, BelongsToTenant, HasFactory, HasUuids;
 
     protected $fillable = [
         'tenant_id',
         'store_id',
         'register_id',
+        'shift_id',
         'user_id',
         'customer_id',
+        'promotion_id',
+        'coupon_code',
         'order_number',
         'idempotency_key',
         'status',
@@ -66,6 +69,11 @@ class Order extends Model
         return $this->belongsTo(Register::class);
     }
 
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
     public function cashier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -74,5 +82,20 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function promotion(): BelongsTo
+    {
+        return $this->belongsTo(Promotion::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(OrderRefund::class);
+    }
+
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(SalesCommission::class);
     }
 }

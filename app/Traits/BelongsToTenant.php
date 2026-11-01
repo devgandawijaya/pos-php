@@ -24,7 +24,7 @@ trait BelongsToTenant
             }
 
             if ($tenantId !== null) {
-                $builder->where($builder->getModel()->getTable() . '.tenant_id', $tenantId);
+                $builder->where($builder->getModel()->getTable().'.tenant_id', $tenantId);
             }
         });
 
@@ -47,4 +47,3 @@ trait BelongsToTenant
         return $this->belongsTo(Tenant::class, 'tenant_id');
     }
 }
-

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HeldOrder extends Model
 {
-    use BelongsToTenant, BelongsToStore, HasFactory, HasUuids;
+    use BelongsToStore, BelongsToTenant, HasFactory, HasUuids;
 
     protected $fillable = [
         'tenant_id',

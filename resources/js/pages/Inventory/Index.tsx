@@ -625,3 +625,4 @@ export default function InventoryIndex({ balances, movements, warehouses, produc
         </AuthenticatedLayout>
     );
 }
+

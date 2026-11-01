@@ -8,18 +8,20 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderPayment;
 use App\Models\Product;
+use App\Models\Shift;
 use App\Models\StockBalance;
 use App\Models\Store;
 use App\Models\Warehouse;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class PosCheckoutService
 {
     public function __construct(
-        protected InventoryService $inventoryService
+        protected InventoryService $inventoryService,
+        protected PromotionService $promotionService,
+        protected CommissionService $commissionService
     ) {}
 
     /**
@@ -116,12 +118,28 @@ class PosCheckoutService
                 ];
             }
 
+            // Coupon & Promotion Evaluation
+            $appliedPromotion = null;
+            $couponCode = $data['coupon_code'] ?? null;
+            $discountAmount = (float) ($data['discount_amount'] ?? 0);
+
+            if (! empty($couponCode)) {
+                $promoValidation = $this->promotionService->validateCoupon(
+                    code: $couponCode,
+                    subtotal: $subtotal,
+                    cartItems: $orderLines,
+                    customer: $customer,
+                    tenantId: $tenantId
+                );
+                $appliedPromotion = $promoValidation['promotion'];
+                $discountAmount = max($discountAmount, (float) $promoValidation['discount_amount']);
+            }
+
+            $discountAmount = min($discountAmount, $subtotal);
+
             // Tax (Default store tax percentage, e.g. 11% PPN)
             $taxPercentage = (float) ($store->tax_percentage ?? 11.00);
-            $taxAmount = round($subtotal * ($taxPercentage / 100), 2);
-
-            // Transaction-level Discount
-            $discountAmount = min((float) ($data['discount_amount'] ?? 0), $subtotal);
+            $taxAmount = round(max(0, $subtotal - $discountAmount) * ($taxPercentage / 100), 2);
 
             // Service Charge
             $serviceCharge = (float) ($data['service_charge'] ?? 0);
@@ -129,17 +147,86 @@ class PosCheckoutService
             // Grand Total
             $totalAmount = max(0, $subtotal - $discountAmount + $taxAmount + $serviceCharge);
 
-            // Payment Calculations
-            $paymentMethod = $data['payment_method'] ?? 'cash';
-            $paidAmount = (float) ($data['paid_amount'] ?? $totalAmount);
-
-            if ($paymentMethod === 'cash' && $paidAmount < $totalAmount) {
-                throw new DomainException(
-                    "Jumlah uang tunai yang dibayarkan (" . number_format($paidAmount, 0, ',', '.') . ") kurang dari total belanja (" . number_format($totalAmount, 0, ',', '.') . ")."
-                );
+            // Shift Association: resolve provided shift_id or active shift on register
+            $shiftId = $data['shift_id'] ?? null;
+            if (! $shiftId && ! empty($data['register_id'])) {
+                $activeShift = Shift::where('tenant_id', $tenantId)
+                    ->where('register_id', $data['register_id'])
+                    ->where('status', 'open')
+                    ->first();
+                $shiftId = $activeShift?->id;
             }
 
-            $changeAmount = max(0, $paidAmount - $totalAmount);
+            // Payment Calculations (Single or Split Payments)
+            $paymentRecords = [];
+            $splitPayments = $data['payments'] ?? null;
+
+            if (! empty($splitPayments) && is_array($splitPayments)) {
+                $totalPaid = 0;
+                $totalAllocated = 0;
+                $totalChange = 0;
+
+                foreach ($splitPayments as $p) {
+                    $pMethod = $p['payment_method'] ?? 'cash';
+                    $pAmount = (float) ($p['amount'] ?? 0);
+                    $pPaidAmount = (float) ($p['paid_amount'] ?? $pAmount);
+
+                    if ($pAmount <= 0) {
+                        throw new DomainException("Nominal pembayaran untuk metode {$pMethod} harus lebih dari 0.");
+                    }
+
+                    if ($pMethod === 'cash' && $pPaidAmount < $pAmount) {
+                        throw new DomainException('Uang tunai yang dibayarkan kurang dari nominal split tunai.');
+                    }
+
+                    $lineChange = ($pMethod === 'cash') ? max(0, $pPaidAmount - $pAmount) : 0;
+                    $totalChange += $lineChange;
+                    $totalPaid += $pPaidAmount;
+                    $totalAllocated += $pAmount;
+
+                    $paymentRecords[] = [
+                        'payment_method' => $pMethod,
+                        'amount' => $pAmount,
+                        'reference_number' => $p['reference_number'] ?? null,
+                        'gateway_transaction_id' => $p['gateway_transaction_id'] ?? null,
+                        'payment_channel' => $p['payment_channel'] ?? null,
+                        'approval_code' => $p['approval_code'] ?? null,
+                        'status' => $p['status'] ?? 'success',
+                        'metadata' => $p['metadata'] ?? null,
+                    ];
+                }
+
+                if ($totalAllocated < $totalAmount) {
+                    $shortage = $totalAmount - $totalAllocated;
+                    throw new DomainException('Total pembayaran gabungan ('.number_format($totalAllocated, 0, ',', '.').') kurang dari total belanja ('.number_format($totalAmount, 0, ',', '.').'). Kurang: '.number_format($shortage, 0, ',', '.'));
+                }
+
+                $paymentMethod = count($splitPayments) > 1 ? 'split' : ($splitPayments[0]['payment_method'] ?? 'cash');
+                $paidAmount = $totalPaid;
+                $changeAmount = $totalChange;
+            } else {
+                $paymentMethod = $data['payment_method'] ?? 'cash';
+                $paidAmount = (float) ($data['paid_amount'] ?? $totalAmount);
+
+                if ($paymentMethod === 'cash' && $paidAmount < $totalAmount) {
+                    throw new DomainException(
+                        'Jumlah uang tunai yang dibayarkan ('.number_format($paidAmount, 0, ',', '.').') kurang dari total belanja ('.number_format($totalAmount, 0, ',', '.').').'
+                    );
+                }
+
+                $changeAmount = max(0, $paidAmount - $totalAmount);
+
+                $paymentRecords[] = [
+                    'payment_method' => $paymentMethod,
+                    'amount' => $totalAmount,
+                    'reference_number' => $data['payment_reference'] ?? $data['reference_number'] ?? null,
+                    'gateway_transaction_id' => $data['gateway_transaction_id'] ?? null,
+                    'payment_channel' => $data['payment_channel'] ?? null,
+                    'approval_code' => $data['approval_code'] ?? null,
+                    'status' => 'success',
+                    'metadata' => null,
+                ];
+            }
 
             // Generate Sequential Invoice Number: INV/{STORE_CODE}/{YYYYMMDD}/{SEQUENCE}
             $datePrefix = date('Ymd');
@@ -156,8 +243,11 @@ class PosCheckoutService
                 'tenant_id' => $tenantId,
                 'store_id' => $store->id,
                 'register_id' => $data['register_id'] ?? null,
+                'shift_id' => $shiftId,
                 'user_id' => auth()->id() ?? $data['user_id'] ?? null,
                 'customer_id' => $customer?->id,
+                'promotion_id' => $appliedPromotion?->id,
+                'coupon_code' => $appliedPromotion?->code ?? $couponCode,
                 'order_number' => $orderNumber,
                 'idempotency_key' => $idempotencyKey,
                 'status' => 'completed',
@@ -209,15 +299,27 @@ class PosCheckoutService
                 }
             }
 
-            // Record Payment
-            OrderPayment::create([
-                'tenant_id' => $tenantId,
-                'order_id' => $order->id,
-                'payment_method' => $paymentMethod,
-                'amount' => $totalAmount,
-                'reference_number' => $data['payment_reference'] ?? null,
-                'status' => 'success',
-            ]);
+            // Record Payments (single or multi-split)
+            foreach ($paymentRecords as $pRec) {
+                OrderPayment::create([
+                    'tenant_id' => $tenantId,
+                    'order_id' => $order->id,
+                    'shift_id' => $shiftId,
+                    'payment_method' => $pRec['payment_method'],
+                    'amount' => $pRec['amount'],
+                    'reference_number' => $pRec['reference_number'],
+                    'gateway_transaction_id' => $pRec['gateway_transaction_id'],
+                    'payment_channel' => $pRec['payment_channel'],
+                    'approval_code' => $pRec['approval_code'],
+                    'status' => $pRec['status'] ?? 'success',
+                    'metadata' => $pRec['metadata'],
+                ]);
+            }
+
+            // Record Promotion Usage if applied
+            if ($appliedPromotion) {
+                $this->promotionService->recordUsage($appliedPromotion, $order, $discountAmount, $customer);
+            }
 
             // Loyalty Points Accumulation (1 point per IDR 10,000 spent)
             if ($customer && $totalAmount >= 10000) {
@@ -225,7 +327,14 @@ class PosCheckoutService
                 $customer->increment('loyalty_points', $pointsEarned);
             }
 
-            return $order->load(['items.product', 'payments', 'customer', 'store', 'cashier']);
+            // Record Sales Commission for Cashier / Sales Rep (Default 2%)
+            $this->commissionService->calculateAndRecordCommission(
+                order: $order,
+                salesRep: auth()->user(),
+                ratePercentage: (float) ($data['commission_rate'] ?? 2.00)
+            );
+
+            return $order->load(['items.product', 'payments', 'customer', 'store', 'cashier', 'promotion']);
         });
     }
 
@@ -243,7 +352,7 @@ class PosCheckoutService
             'register_id' => $data['register_id'] ?? null,
             'user_id' => auth()->id() ?? $data['user_id'] ?? null,
             'customer_id' => $data['customer_id'] ?? null,
-            'reference_note' => $data['reference_note'] ?? 'Antrean ' . date('H:i'),
+            'reference_note' => $data['reference_note'] ?? 'Antrean '.date('H:i'),
             'cart_payload' => $data['cart_payload'],
             'expires_at' => now()->addHours(12),
         ]);

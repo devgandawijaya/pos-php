@@ -36,8 +36,8 @@ class InventoryController extends Controller
         if ($search = $request->input('search')) {
             $balanceQuery->whereHas('product', function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('sku', 'ilike', "%{$search}%")
-                  ->orWhere('barcode', 'ilike', "%{$search}%");
+                    ->orWhere('sku', 'ilike', "%{$search}%")
+                    ->orWhere('barcode', 'ilike', "%{$search}%");
             });
         }
 
@@ -53,10 +53,10 @@ class InventoryController extends Controller
             'warehouse:id,name,code',
             'user:id,name',
         ])
-        ->when($selectedWarehouseId, fn ($q) => $q->where('warehouse_id', $selectedWarehouseId))
-        ->orderByDesc('created_at')
-        ->limit(20)
-        ->get();
+            ->when($selectedWarehouseId, fn ($q) => $q->where('warehouse_id', $selectedWarehouseId))
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get();
 
         $products = Product::where('status', 'active')
             ->select('id', 'name', 'sku', 'purchase_cost')
@@ -100,7 +100,7 @@ class InventoryController extends Controller
                 productId: $validated['product_id'],
                 movementType: 'MANUAL_ADJUSTMENT',
                 quantityChange: $quantityChange,
-                notes: "Penyesuaian manual ({$validated['reason']}): " . ($validated['notes'] ?? '-'),
+                notes: "Penyesuaian manual ({$validated['reason']}): ".($validated['notes'] ?? '-'),
                 userId: auth()->id()
             );
 

@@ -228,7 +228,7 @@ export default function CustomersIndex({ customers, groups, filters }: Props) {
                                         </td>
                                         <td className="py-3 px-4 text-center">
                                             <span className="inline-flex items-center px-2 py-0.5 rounded font-mono font-bold bg-amber-500/10 text-amber-400">
-                                                {customer.loyalty_points.toLocaleString()} PTS
+                                                {customer.loyalty_points.toLocaleString()} Poin
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right font-mono text-slate-300">
@@ -240,14 +240,14 @@ export default function CustomersIndex({ customers, groups, filters }: Props) {
                                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                                     : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                                             }`}>
-                                                {customer.status.toUpperCase()}
+                                                {customer.status === 'active' ? 'AKTIF' : 'NON-AKTIF'}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right space-x-2">
                                             <button
                                                 onClick={() => openEditModal(customer)}
                                                 className="p-1 rounded text-slate-400 hover:text-blue-400 hover:bg-slate-700 transition-colors"
-                                                title="Edit"
+                                                title="Ubah"
                                             >
                                                 <Edit2 className="w-3.5 h-3.5" />
                                             </button>

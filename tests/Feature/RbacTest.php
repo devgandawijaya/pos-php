@@ -153,4 +153,38 @@ class RbacTest extends TestCase
         $this->assertTrue($cashier->canAccessStore($store1->id));
         $this->assertFalse($cashier->canAccessStore($store2->id));
     }
+
+    public function test_super_admin_can_access_all_tenant_modules_and_switch_tenants(): void
+    {
+        $tenantA = Tenant::create(['name' => 'Tenant A', 'slug' => 'tenant-a', 'is_active' => true]);
+        $storeA = Store::create(['tenant_id' => $tenantA->id, 'code' => 'STA', 'name' => 'Store A', 'is_active' => true]);
+
+        $tenantB = Tenant::create(['name' => 'Tenant B', 'slug' => 'tenant-b', 'is_active' => true]);
+        $storeB = Store::create(['tenant_id' => $tenantB->id, 'code' => 'STB', 'name' => 'Store B', 'is_active' => true]);
+
+        $roleSuper = Role::firstOrCreate(
+            ['slug' => 'super-admin'],
+            ['name' => 'Super Admin', 'is_system' => true]
+        );
+
+        $superAdmin = User::create([
+            'tenant_id' => null,
+            'name' => 'Global Super Admin',
+            'email' => 'superadmin@pos.test',
+            'password' => bcrypt('password'),
+            'status' => 'active',
+        ]);
+        $superAdmin->assignRole($roleSuper);
+
+        // Super Admin can access dashboard and automatically resolves to active tenant
+        $response = $this->actingAs($superAdmin)->get('/dashboard');
+        $response->assertStatus(200);
+
+        // Super Admin can switch to Tenant B
+        $responseSwitch = $this->actingAs($superAdmin)->post('/admin/tenants/switch', [
+            'tenant_id' => $tenantB->id,
+        ]);
+        $responseSwitch->assertRedirect();
+        $this->assertEquals($tenantB->id, session('active_tenant_id'));
+    }
 }

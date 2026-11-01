@@ -77,4 +77,3 @@ return new class extends Migration
         Schema::dropIfExists('customer_groups');
     }
 };
-
