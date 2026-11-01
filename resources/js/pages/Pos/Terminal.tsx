@@ -706,8 +706,8 @@ export default function PosTerminal({ store, register, warehouse, activeShift: i
                         <ArrowLeft className="w-4 h-4" />
                     </Link>
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-blue-500/20">
-                            POS
+                        <div className="px-2 h-7 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center font-black text-white text-xs shadow-md shadow-red-500/20">
+                            RIPos
                         </div>
                         <div>
                             <span className="font-bold text-sm text-white leading-none block">
@@ -1639,7 +1639,7 @@ export default function PosTerminal({ store, register, warehouse, activeShift: i
                             <div className="text-center pt-3 text-[10px] text-slate-600 border-t border-dashed border-slate-400 leading-tight space-y-1">
                                 <div>{register?.footer_text || 'Terima kasih atas kunjungan Anda!'}</div>
                                 <div className="text-[9px] text-slate-400 font-sans tracking-tight">
-                                    Powered by PhoebeHub • phoebehub.com
+                                    Powered by RIPos (Republik Indonesia POS) • phoebehub.com
                                 </div>
                             </div>
 
@@ -2158,7 +2158,7 @@ export default function PosTerminal({ store, register, warehouse, activeShift: i
                             )}
 
                             <div className="text-center pt-2 text-[9px] text-slate-400 font-sans border-t border-dashed border-slate-300">
-                                PhoebeHub POS System • phoebehub.com
+                                RIPos (Republik Indonesia POS) • phoebehub.com
                             </div>
                         </div>
                     </div>

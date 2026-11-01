@@ -670,9 +670,9 @@ export default function PosRegisterSettings({ stores, selectedStore, registers }
                                 </div>
                             )}
 
-                            {/* Powered by PhoebeHub */}
+                            {/* Powered by RIPos */}
                             <div className="pt-1 text-center text-[9px] text-slate-400 font-sans border-t border-dashed border-slate-300">
-                                Powered by PhoebeHub • phoebehub.com
+                                Powered by RIPos (Republik Indonesia POS) • phoebehub.com
                             </div>
                         </div>
 

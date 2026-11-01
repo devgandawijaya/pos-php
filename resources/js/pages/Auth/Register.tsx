@@ -21,10 +21,10 @@ export default function Register() {
 
     return (
         <GuestLayout
-            title="Daftar Usaha Baru di PhoebeHub POS"
-            subtitle="Uji coba gratis 14 hari penuh fitur di ekosistem phoebehub.com"
+            title="Daftar Usaha Baru di RIPos"
+            subtitle="Republik Indonesia POS — Uji coba gratis 14 hari dari phoebehub.com"
         >
-            <Head title="Pendaftaran Akun Usaha Baru - PhoebeHub POS" />
+            <Head title="Pendaftaran Akun Usaha Baru - RIPos (Republik Indonesia POS)" />
 
             <form onSubmit={submit} className="space-y-4">
                 {/* Business Name */}

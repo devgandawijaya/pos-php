@@ -136,19 +136,19 @@ export default function LandingIndex({ plans }: Props) {
             ],
         },
         {
-            tag: '🌐 TEKNOLOGI CLOUD PHOEBEHUB.COM',
-            title: 'Didukung Ekosistem Cloud Handal & Aman dari PhoebeHub',
+            tag: '🇮🇩 PHOEBEHUB CLOUD UNTUK INDONESIA',
+            title: 'RIPos: Didukung Fondasi Cloud Terpercaya dari PhoebeHub',
             description:
-                'Dibangun di atas arsitektur cloud teruji phoebehub.com. Menjamin kecepatan akses tinggi, perlindungan data berstandar enterprise, isolasi multi-tenant yang ketat, dan skalabilitas bisnis tanpa batas.',
-            badgeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-            accentColor: 'from-purple-500 to-indigo-600',
-            bgGlow: 'from-purple-600/20 via-indigo-600/10 to-transparent',
+                'RIPos (Republik Indonesia POS) dikembangkan di atas arsitektur cloud enterprise phoebehub.com. Dirancang khusus untuk memajukan ritel modern di Indonesia dengan sinkronisasi multi-cabang instan, keamanan tinggi, dan ketersediaan layanan 24/7.',
+            badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+            accentColor: 'from-rose-500 to-indigo-600',
+            bgGlow: 'from-rose-600/20 via-indigo-600/10 to-transparent',
             ctaPrimary: 'Jelajahi phoebehub.com',
             ctaLink: 'https://phoebehub.com',
             metrics: [
                 { label: 'Ecosystem Provider', value: 'phoebehub.com' },
                 { label: 'Cloud Uptime', value: '99.9%' },
-                { label: 'Keamanan Data', value: 'Tingkat Enkripsi Bank' },
+                { label: 'Skala Platform', value: 'Republik Indonesia' },
             ],
         },
     ];
@@ -177,12 +177,12 @@ export default function LandingIndex({ plans }: Props) {
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-600 selection:text-white">
-            <Head title="PhoebeHub POS - Sistem Kasir Pintar & Manajemen Ritel dari phoebehub.com" />
+            <Head title="RIPos (Republik Indonesia POS) - Solusi Kasir Pintar dari phoebehub.com" />
 
             {/* PhoebeHub Ecosystem Top Ribbon */}
-            <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-700 py-1.5 px-4 text-center text-xs font-medium text-white flex items-center justify-center gap-2">
-                <span>🚀 Produk Resmi dari Ekosistem Digital <strong>PhoebeHub</strong></span>
-                <span className="text-blue-200 hidden sm:inline">•</span>
+            <div className="bg-gradient-to-r from-red-700 via-rose-600 to-blue-700 py-1.5 px-4 text-center text-xs font-medium text-white flex items-center justify-center gap-2">
+                <span>🇮🇩 <strong>RIPos (Republik Indonesia POS)</strong> — Solusi Kasir Pintar Resmi dari Ekosistem Digital <strong>PhoebeHub</strong></span>
+                <span className="text-red-200 hidden sm:inline">•</span>
                 <a
                     href="https://phoebehub.com"
                     target="_blank"
@@ -199,14 +199,22 @@ export default function LandingIndex({ plans }: Props) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     {/* Brand Logo */}
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-rose-600 to-blue-600 flex items-center justify-center shadow-lg shadow-red-500/25 group-hover:scale-105 transition-transform">
                             <Store className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <span className="font-extrabold text-white text-base tracking-tight leading-tight block">
-                                PhoebeHub POS
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-extrabold text-white text-base tracking-tight leading-tight block">
+                                    RIPos
+                                </span>
+                                <span className="text-[9px] px-1 py-0.2 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/30 leading-none">
+                                    ID
+                                </span>
+                            </div>
+                            <span className="text-[10px] text-slate-300 font-medium tracking-tight block">
+                                Republik Indonesia POS
                             </span>
-                            <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider block">
+                            <span className="text-[9px] text-blue-400 font-semibold tracking-wider block">
                                 by phoebehub.com
                             </span>
                         </div>
@@ -987,23 +995,31 @@ export default function LandingIndex({ plans }: Props) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-red-600 via-rose-600 to-blue-600 flex items-center justify-center text-white shadow-md shadow-red-500/20">
                                 <Store className="w-4 h-4" />
                             </div>
                             <div>
-                                <span className="font-extrabold text-white text-sm block">PhoebeHub POS</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="font-extrabold text-white text-sm block">RIPos</span>
+                                    <span className="text-[9px] px-1 py-0.2 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/30 leading-none">
+                                        ID
+                                    </span>
+                                </div>
+                                <span className="text-[11px] text-slate-300 font-medium block">
+                                    Republik Indonesia POS
+                                </span>
                                 <a
                                     href="https://phoebehub.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[10px] text-blue-400 font-semibold hover:underline block"
                                 >
-                                    phoebehub.com
+                                    by phoebehub.com
                                 </a>
                             </div>
                         </div>
                         <p className="text-slate-400 text-xs leading-relaxed">
-                            Solusi Point of Sale dan manajemen ritel multi-cabang terintegrasi dari ekosistem{' '}
+                            RIPos (Republik Indonesia POS) adalah solusi Point of Sale dan manajemen ritel multi-cabang terintegrasi dari ekosistem{' '}
                             <a
                                 href="https://phoebehub.com"
                                 target="_blank"
@@ -1012,7 +1028,7 @@ export default function LandingIndex({ plans }: Props) {
                             >
                                 phoebehub.com
                             </a>{' '}
-                            untuk pelaku usaha modern di Indonesia.
+                            untuk memajukan bisnis modern di seluruh Indonesia.
                         </p>
                     </div>
 
@@ -1080,12 +1096,12 @@ export default function LandingIndex({ plans }: Props) {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
                     <div>
-                        &copy; {new Date().getFullYear()}{' '}
+                        &copy; {new Date().getFullYear()} <strong>RIPos (Republik Indonesia POS)</strong> • Dikembangkan oleh{' '}
                         <a
                             href="https://phoebehub.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-blue-400 font-semibold underline"
+                            className="text-slate-300 hover:text-blue-400 font-semibold underline"
                         >
                             PhoebeHub (phoebehub.com)
                         </a>
