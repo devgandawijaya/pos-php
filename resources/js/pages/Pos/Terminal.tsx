@@ -89,6 +89,7 @@ interface Props {
         name: string;
         code: string;
         tax_percentage?: number;
+        address?: string;
     } | null;
     register: {
         id: string;

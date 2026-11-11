@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: pos-enterprise-app:latest
     container_name: pos_app
     restart: unless-stopped
     working_dir: /var/www/html
@@ -87,9 +88,7 @@ services:
 
   # 5. Queue Worker
   queue-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: pos-enterprise-app:latest
     container_name: pos_queue_worker
     restart: unless-stopped
     command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
@@ -106,6 +105,8 @@ services:
       - REDIS_PORT=6379
       - QUEUE_CONNECTION=redis
     depends_on:
+      app:
+        condition: service_started
       postgres:
         condition: service_healthy
       redis:
@@ -115,12 +116,10 @@ services:
 
   # 6. Cron Scheduler
   scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: pos-enterprise-app:latest
     container_name: pos_scheduler
     restart: unless-stopped
-    command: sh -c "while true; do php /var/www/html/artisan schedule:run --verbose --no-interaction & sleep 60; done"
+    command: sh -c "while true; do php /var/www/html/artisan schedule:run --verbose --no-interaction; sleep 60; done"
     volumes:
       - .:/var/www/html
     environment:
@@ -133,6 +132,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
+      app:
+        condition: service_started
       postgres:
         condition: service_healthy
       redis:

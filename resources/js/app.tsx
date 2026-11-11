@@ -6,10 +6,11 @@ const appName = import.meta.env.VITE_APP_NAME || 'RIPos';
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => {
-        const pages = import.meta.glob('./pages/**/*.tsx', { eager: true });
+        const pages = import.meta.glob<any>('./pages/**/*.tsx', { eager: true });
         return pages[`./pages/${name}.tsx`];
     },
     setup({ el, App, props }) {
+        if (!el) return;
         const root = createRoot(el);
         root.render(<App {...props} />);
     },

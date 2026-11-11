@@ -6,19 +6,20 @@ Sistem Point of Sale (POS) Enterprise SaaS Multi-Tenant berbasis **Laravel 12**,
 
 ## 1. Quick Start dengan Docker Compose
 
-Pastikan Docker Desktop sudah aktif, lalu jalankan:
+Pastikan Docker Desktop sudah aktif, lalu jalankan urutan berikut:
 
 ```bash
 # 1. Jalankan seluruh container (PHP-FPM, Nginx, PostgreSQL, Redis, Worker, Scheduler, Mailpit)
 docker compose up -d --build
 
-# 2. Periksa status container
-docker compose ps
+# 2. Install dependensi PHP (vendor) di dalam container
+docker compose exec app composer install
 
 # 3. Jalankan migrasi dan seeder awal di dalam container
 docker compose exec app php artisan migrate --seed
 
-# 4. Build asset frontend (React + Tailwind)
+# 4. Install dependensi frontend dan build asset (React + Tailwind)
+npm install
 npm run build
 ```
 
